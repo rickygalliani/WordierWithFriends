@@ -37,12 +37,13 @@ class Board {
     (Board.Radius - y, Board.Radius + x)
   }
 
+  private def validLocation(x: Int, y: Int): Boolean = {
+    math.abs(x) <= Board.Radius && math.abs(y) <= Board.Radius
+  }
+
   private def openPosition(x: Int, y: Int): Boolean = {
-    if (math.abs(x) > Board.Radius || 
-        math.abs(y) > Board.Radius || 
-        getPosition(x, y).getTile.isDefined) {
-      false 
-    }
+    // Not open if (x, y) isn't a location on board or tile already occupies location
+    if (!validLocation(x, y) || getPosition(x, y).getTile.isDefined) false
     else true
   }
 
@@ -52,9 +53,88 @@ class Board {
   }
 
   // Sets the tile at the position given by the coordinates
-  private def setPosition(x: Int, y: Int, tile: Tile): Unit = {
+  private def setTileAtPosition(x: Int, y: Int, tile: Tile): Unit = {
     val (gridX, gridY) = getGridCoordinates(x, y)
     state(gridX)(gridY).setTile(tile)
+  }
+
+  // Clears the tile at the given position
+  private def clearTileAtPosition(x: Int, y: Int): Unit = {
+    val (gridX, gridY) = getGridCoordinates(x, y)
+    state(gridX)(gridY).clearTile()
+  }
+
+  private def getLetterAtPosition(x: Int, y: Int): Option[String] = {
+    if (validLocation(x, y)) {
+      val tile = getPosition(x, y).getTile
+      if (tile.isDefined) Option(tile.get.letter) else None
+    } 
+    else None
+  }
+
+  private def getHorizontalWordsAtPosition(x: Int, y: Int, startLetter: String): String = {
+  
+    var hWord = startLetter
+
+    // Check letters in horizontal word that extend to the left from the current position
+    var leftX = x - 1
+    var leftLetter = getLetterAtPosition(leftX, y)
+    while (leftLetter.isDefined) {
+      hWord = leftLetter.get + hWord
+      leftX -= 1
+      leftLetter = getLetterAtPosition(leftX, y)
+    }
+
+    // Check letters in horizontal word that extend to the right from the current position
+    var rightX = x + 1
+    var rightLetter = getLetterAtPosition(rightX, y)
+    while (rightLetter.isDefined) {
+      hWord = hWord + rightLetter.get
+      rightX += 1
+      rightLetter = getLetterAtPosition(rightX, y)
+    }
+
+    hWord
+  }
+
+  private def getVerticalWordsAtPosition(x: Int, y: Int, startLetter: String): String = {
+  
+    var vWord = startLetter
+
+    // Check letters in vertical word that extend up from the current position
+    var upY = y + 1
+    var upLetter = getLetterAtPosition(x, upY)
+    while (upLetter.isDefined) {
+      vWord = upLetter.get + vWord
+      upY += 1
+      upLetter = getLetterAtPosition(x, upY)
+    }
+
+    // Check letters in vertical word that extend down from the current position
+    var downY = y - 1
+    var downLetter = getLetterAtPosition(x, downY)
+    while (downLetter.isDefined) {
+      vWord = vWord + downLetter.get
+      downY -= 1
+      downLetter = getLetterAtPosition(x, downY)
+    }
+
+    vWord
+  }
+
+  private def moveIsValid(move: Move): Boolean = {
+    // First check whether making the move would "overwrite" existing tiles
+    val coordinates = move.getCoordinates()
+    coordinates.tail.foreach { case (x, y) => 
+      if (getLetterAtPosition(x, y).isDefined) return false
+    }
+
+    // Check the validity of the "offshoot" words created
+    val offshootWords = coordinates.zip(move.word.toList).map { case ((x, y), letter) =>    
+      if (move.direction == Move.Horizontal) getVerticalWordsAtPosition(x, y, letter.toString)
+      else getHorizontalWordsAtPosition(x, y, letter.toString)
+    }
+    offshootWords.forall(Dictionary.wordIsValid _)
   }
 
   def getMoveScore(move: Move): Int = {
@@ -62,10 +142,15 @@ class Board {
     val tiles = move.word.map(c => Tiles.makeTile(c.toString))
     var score = 0
     var wordFactor = 1
+    // TODO: need to add scores for "offshoot" words!
     coordinates.zip(tiles).foreach { case ((x, y), tile) => 
       val pos = getPosition(x, y)
-      score += tile.points * pos.letterFactor
-      wordFactor *= pos.wordFactor
+      val alreadyOccupied = pos.getTile.isDefined
+      score = {
+        if (!alreadyOccupied) score + tile.points * pos.letterFactor
+        else score + tile.points
+      }
+      if (!alreadyOccupied) wordFactor *= pos.wordFactor
     }
     score *= wordFactor
     score
@@ -80,34 +165,34 @@ class Board {
       (-1 * Board.Radius to 1 * Board.Radius).foreach { x =>
         (-1 * Board.Radius to 1 * Board.Radius).foreach { y =>
           if (!openPosition(x, y)) {  // Met an occupied tile
-            val letters = getPosition(x, y).getTile.get.letter  // TODO: support mutliple letters
+            val letters = getPosition(x, y).getTile.get.letter
             // Use occupied tile(s) as prefix for horizontal words
             var maxAfterX = x + 1
             while (openPosition(maxAfterX, y)) maxAfterX += 1
-            val horizontalAfter = getWords(tiles, (2 until maxAfterX - x).toSet, prefix = letters)
-            horizontalAfter.foreach(w => moves += Move(w, x, y, Move.Horizontal))
+            val hAfter = getWords(tiles, (2 until maxAfterX - x).toSet, prefix = letters)
+            hAfter.foreach(w => moves += Move(w, x, y, Move.Horizontal))
 
             // Use occupied tile(s) as suffix for horizontal words
             var maxBeforeX = x - 1
             while (openPosition(maxBeforeX, y)) maxBeforeX -= 1
-            val horizontalBefore = getWords(tiles, (2 until maxBeforeX - x).toSet, prefix = letters)
-            horizontalBefore.foreach(w => moves += Move(w, x, y, Move.Horizontal))
+            val hBefore = getWords(tiles, (2 until maxBeforeX - x).toSet, prefix = letters)
+            hBefore.foreach(w => moves += Move(w, x, y, Move.Horizontal))
 
             // Use occupied tile(s) as prefix for vertical words
             var maxAfterY = y + 1
             while (openPosition(x, maxAfterY)) maxAfterY += 1
-            val verticalAfter = getWords(tiles, (2 until maxAfterY - y).toSet, prefix = letters)
-            verticalAfter.foreach(w => moves += Move(w, x, y, Move.Vertical))
+            val vAfter = getWords(tiles, (2 until maxAfterY - y).toSet, prefix = letters)
+            vAfter.foreach(w => moves += Move(w, x, y, Move.Vertical))
 
             // Use occupied tile(s) as suffix for vertical words
             var maxBeforeY = y - 1
             while (openPosition(x, maxBeforeY)) maxBeforeY -= 1
-            val verticalBefore = getWords(tiles, (2 until maxBeforeY - y).toSet, prefix = letters)
-            verticalBefore.foreach(w => moves += Move(w, x, y, Move.Vertical))          
+            val vBefore = getWords(tiles, (2 until maxBeforeY - y).toSet, prefix = letters)
+            vBefore.foreach(w => moves += Move(w, x, y, Move.Vertical))          
           }
         }
       }
-      moves.toSet
+      moves.filter(m => moveIsValid(m)).toSet
     }
   }
 
@@ -116,7 +201,7 @@ class Board {
     // Construct tiles for each character in the word
     val tiles = move.word.map(c => Tiles.makeTile(c.toString))
     // Add the tiles to the board
-    coordinates.zip(tiles).foreach { case ((x, y), tile) => setPosition(x, y, tile) }
+    coordinates.zip(tiles).foreach { case ((x, y), tile) => setTileAtPosition(x, y, tile) }
   }
 
   def print(): Unit = {

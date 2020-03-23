@@ -4,6 +4,7 @@ class Position(val letterFactor: Int = 1, val wordFactor: Int = 1) {
 
   def getTile: Option[Tile] = tile
   def setTile(newTile: Tile): Unit = tile = Option(newTile)
+  def clearTile(): Unit = tile = None
   
 }
 
@@ -20,5 +21,5 @@ object Position {
 	def tl: TripleLetterPosition = new TripleLetterPosition
 	def dw: DoubleWordPosition = new DoubleWordPosition
 	def tw: TripleWordPosition = new TripleWordPosition
-	
+
 }

@@ -11,11 +11,12 @@ object Main extends App {
   //   .map(c => Tiles.makeTile(c))
   //   .toSet
 
-  val tiles = List("U", "I", "L", "D", "U", "W", "E").map(c => Tiles.makeTile(c)).toSet
+  val tiles = List("F", "A", "M", "I", "L", "Y").map(c => Tiles.makeTile(c)).toSet
 
   board.print
+  val moves = board.getMoves(tiles).map(m => (m, board.getMoveScore(m))).toList.sortBy(_._2)
+  moves.foreach(m => println(s"${m._1.asString} ${m._2}"))
 
-  val moves = board.getMoves(tiles).map(m => (m, board.getMoveScore(m)))
   board.makeMove(moves.maxBy(_._2)._1)
 
   board.print

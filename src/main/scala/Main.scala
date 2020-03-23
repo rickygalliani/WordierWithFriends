@@ -8,25 +8,22 @@ object Main extends App {
 
   // val tiles = readLine("What tiles do you have? (separate with commas (i.e., A, B, C))\n")
   //   .split(", ")
-  //   .map(c => Tiles.getTile(c))
+  //   .map(c => Tiles.makeTile(c))
+  //   .toSet
 
-  // val validWords = (1 to tiles.size).flatMap { length =>
-  //   // All subsets of the tiles of the current length
-  //   tiles.combinations(length).toList.flatMap { sub => 
-  //     // Check all permutations of each tile subset
-  //     sub.permutations.toList.flatMap { ord => 
-  //       val word = Tiles.getWord(ord)
-  //       if (Dictionary.wordIsValid(word)) Option(word) else None
-  //     }
-  //   }
-  // }
+  val tiles = List("U", "I", "L", "D", "U", "W", "E").map(c => Tiles.makeTile(c)).toSet
 
-  // println(s"\n${validWords.mkString("\n")}")
+  val moves = board.getMoves(tiles)
+  moves.foreach { move =>
+    println(s"$move: ${board.getMoveScore(move)}")
+  }
 
-  board.print()
+  // board.addWord("TEST", 0, 0)
 
-  val x = board.addWord("TEST", 0, 0)
+  // board.print
 
-  board.print()
+  // board.addWord("OTHER", -1, 0, dir = Move.Vertical) 
+
+  // board.print
 
 }

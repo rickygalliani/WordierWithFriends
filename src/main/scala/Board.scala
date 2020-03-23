@@ -48,18 +48,14 @@ class Board {
     this.state(gridX)(gridY)
   }
 
+  // Sets the tile at the position given by the coordinates
   private def setPosition(x: Int, y: Int, tile: Tile): Unit = {
     val (gridX, gridY) = getGridCoordinates(x, y)
     this.state(gridX)(gridY).setTile(tile)
   }
 
   def getMoveScore(move: Move): Int = {
-    val coordinates = {
-      if (move.direction == Move.Horizontal) {
-        (0 until move.word.length).map(addX => (move.startX + addX, move.startY))
-      }
-      else (0 to move.word.length).map(addY => (move.startX, move.startY - addY))
-    }
+    val coordinates = move.getCoordinates()
     val tiles = move.word.map(c => Tiles.makeTile(c.toString))
     var score = 0
     var wordFactor = 1
@@ -78,26 +74,17 @@ class Board {
       val validWords = Word.getWords(tiles, (0 to tiles.size).toSet)
       validWords.map(w => Move(w, 0, 0, Move.Horizontal))   
     }
-    else Set[Move]()
+    else {
+      Set[Move]()
+    }
 
     // Go until you hit an occupied tile
   }
 
-  // TODO: change to makeMove(move: Move)
-  def addWord(word: String,
-              startX: Int,
-              startY: Int,
-              direction: Int = Move.Horizontal): Unit = {
-    val coordinates = {
-      if (direction == Move.Horizontal) (0 until word.length).map(addX => (startX + addX, startY))
-      else (0 to word.length).map(addY => (startX, startY - addY))
-    }
-    // Check no tile has been defined before
-    coordinates.foreach { case (x, y) => 
-      if (!this.openPosition(x, y)) throw new IllegalArgumentException("Position is already taken")
-    }
+  def makeMove(move: Move): Unit = {
+    val coordinates = move.getCoordinates()
     // Construct tiles for each character in the word
-    val tiles = word.map(c => Tiles.makeTile(c.toString))
+    val tiles = move.word.map(c => Tiles.makeTile(c.toString))
     // Add the tiles to the board
     coordinates.zip(tiles).foreach { case ((x, y), tile) => this.setPosition(x, y, tile) }
   }

@@ -1,4 +1,6 @@
 target/*
 
+scalastyle-config.xml
+
 *.class
 *.log

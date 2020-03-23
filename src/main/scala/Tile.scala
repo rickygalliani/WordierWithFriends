@@ -58,7 +58,7 @@ object Tiles {
     "Z" -> Z
   )
 
-  def getTile(letter: String): Tile = TileMap(letter)
+  def makeTile(letter: String): Tile = TileMap(letter)
 
   def getWord(tiles: Array[Tile]): String = tiles.map(_.letter).mkString("")
 

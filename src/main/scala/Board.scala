@@ -75,18 +75,35 @@ class Board {
     // Compute all the moves with the given tiles and set origin at center of board
     if (isEmpty) getWords(tiles, (1 to tiles.size).toSet).map(w => Move(w, 0, 0, Move.Vertical))  
     else {
+      // Traverse grid constructing words composed of the given tiles and those already on grid 
       var moves = new ListBuffer[Move]
       (-1 * Board.Radius to 1 * Board.Radius).foreach { x =>
         (-1 * Board.Radius to 1 * Board.Radius).foreach { y =>
           if (!openPosition(x, y)) {  // Met an occupied tile
-            val occupiedPrefix = getPosition(x, y).getTile.get.letter  // TODO: support mutliple letters
-            // Use occupied tile(s) as prefix for words going left to right
+            val letters = getPosition(x, y).getTile.get.letter  // TODO: support mutliple letters
+            // Use occupied tile(s) as prefix for horizontal words
             var maxAfterX = x + 1
             while (openPosition(maxAfterX, y)) maxAfterX += 1
-            val words = getWords(tiles, (2 until maxAfterX - x).toSet, prefix = occupiedPrefix)
-            words.foreach(w => moves += Move(w, x, y, Move.Horizontal))
+            val horizontalAfter = getWords(tiles, (2 until maxAfterX - x).toSet, prefix = letters)
+            horizontalAfter.foreach(w => moves += Move(w, x, y, Move.Horizontal))
 
-            // Use occupied tile(s) as suffix for words going left to right
+            // Use occupied tile(s) as suffix for horizontal words
+            var maxBeforeX = x - 1
+            while (openPosition(maxBeforeX, y)) maxBeforeX -= 1
+            val horizontalBefore = getWords(tiles, (2 until maxBeforeX - x).toSet, prefix = letters)
+            horizontalBefore.foreach(w => moves += Move(w, x, y, Move.Horizontal))
+
+            // Use occupied tile(s) as prefix for vertical words
+            var maxAfterY = y + 1
+            while (openPosition(x, maxAfterY)) maxAfterY += 1
+            val verticalAfter = getWords(tiles, (2 until maxAfterY - y).toSet, prefix = letters)
+            verticalAfter.foreach(w => moves += Move(w, x, y, Move.Vertical))
+
+            // Use occupied tile(s) as suffix for vertical words
+            var maxBeforeY = y - 1
+            while (openPosition(x, maxBeforeY)) maxBeforeY -= 1
+            val verticalBefore = getWords(tiles, (2 until maxBeforeY - y).toSet, prefix = letters)
+            verticalBefore.foreach(w => moves += Move(w, x, y, Move.Vertical))          
           }
         }
       }

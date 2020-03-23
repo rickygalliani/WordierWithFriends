@@ -18,9 +18,14 @@ object Main extends App {
   board.print
   val moves = board.getMoves(tiles).map(m => (m, board.getMoveScore(m))).toList.sortBy(_._2)
   moves.foreach(m => println(s"${m._1.asString} ${m._2}"))
-
   board.makeMove(moves.maxBy(_._2)._1)
 
+  val nextTiles = List("R", "A", "N", "D", "O", "M").map(c => Tiles.makeTile(c)).toSet
+
+  board.print
+  val nextMoves = board.getMoves(nextTiles).map(m => (m, board.getMoveScore(m))).toList.sortBy(_._2)
+  nextMoves.foreach(m => println(s"${m._1.asString} ${m._2}"))
+  board.makeMove(nextMoves.maxBy(_._2)._1)
   board.print
 
 }

@@ -1,4 +1,7 @@
+import scala.collection.mutable.ListBuffer 
+
 import Position.{rp, dl, tl, dw, tw}
+import Word.getWords
 
 class Board {
 
@@ -21,7 +24,7 @@ class Board {
   )
 
   private def isEmpty(): Boolean = {
-    this.state.foreach { row => row.foreach(pos => if (pos.getTile.isDefined) return false) }
+    state.foreach { row => row.foreach(pos => if (pos.getTile.isDefined) return false) }
     true
   }
 
@@ -37,7 +40,7 @@ class Board {
   private def openPosition(x: Int, y: Int): Boolean = {
     if (math.abs(x) > Board.Radius || 
         math.abs(y) > Board.Radius || 
-        this.getPosition(x, y).getTile.isDefined) {
+        getPosition(x, y).getTile.isDefined) {
       false 
     }
     else true
@@ -45,13 +48,13 @@ class Board {
 
   private def getPosition(x: Int, y: Int): Position = {
     val (gridX, gridY) = getGridCoordinates(x, y)
-    this.state(gridX)(gridY)
+    state(gridX)(gridY)
   }
 
   // Sets the tile at the position given by the coordinates
   private def setPosition(x: Int, y: Int, tile: Tile): Unit = {
     val (gridX, gridY) = getGridCoordinates(x, y)
-    this.state(gridX)(gridY).setTile(tile)
+    state(gridX)(gridY).setTile(tile)
   }
 
   def getMoveScore(move: Move): Int = {
@@ -60,7 +63,7 @@ class Board {
     var score = 0
     var wordFactor = 1
     coordinates.zip(tiles).foreach { case ((x, y), tile) => 
-      val pos = this.getPosition(x, y)
+      val pos = getPosition(x, y)
       score += tile.points * pos.letterFactor
       wordFactor *= pos.wordFactor
     }
@@ -69,16 +72,26 @@ class Board {
   }
 
   def getMoves(tiles: Set[Tile]): Set[Move] = {
-    // If the board is empty, compute all the moves with the given tiles
-    if (this.isEmpty()) {
-      val validWords = Word.getWords(tiles, (0 to tiles.size).toSet)
-      validWords.map(w => Move(w, 0, 0, Move.Horizontal))   
-    }
+    // Compute all the moves with the given tiles and set origin at center of board
+    if (isEmpty) getWords(tiles, (1 to tiles.size).toSet).map(w => Move(w, 0, 0, Move.Vertical))  
     else {
-      Set[Move]()
-    }
+      var moves = new ListBuffer[Move]
+      (-1 * Board.Radius to 1 * Board.Radius).foreach { x =>
+        (-1 * Board.Radius to 1 * Board.Radius).foreach { y =>
+          if (!openPosition(x, y)) {  // Met an occupied tile
+            val occupiedPrefix = getPosition(x, y).getTile.get.letter  // TODO: support mutliple letters
+            // Use occupied tile(s) as prefix for words going left to right
+            var maxAfterX = x + 1
+            while (openPosition(maxAfterX, y)) maxAfterX += 1
+            val words = getWords(tiles, (2 until maxAfterX - x).toSet, prefix = occupiedPrefix)
+            words.foreach(w => moves += Move(w, x, y, Move.Horizontal))
 
-    // Go until you hit an occupied tile
+            // Use occupied tile(s) as suffix for words going left to right
+          }
+        }
+      }
+      moves.toSet
+    }
   }
 
   def makeMove(move: Move): Unit = {
@@ -86,11 +99,11 @@ class Board {
     // Construct tiles for each character in the word
     val tiles = move.word.map(c => Tiles.makeTile(c.toString))
     // Add the tiles to the board
-    coordinates.zip(tiles).foreach { case ((x, y), tile) => this.setPosition(x, y, tile) }
+    coordinates.zip(tiles).foreach { case ((x, y), tile) => setPosition(x, y, tile) }
   }
 
   def print(): Unit = {
-    val rows = this.state.map { row =>
+    val rows = state.map { row =>
       s"| ${row.map { pos => pos.getTile.getOrElse("-") }.mkString(" | ")} |"
     }.mkString("\n")
     println(s"\n$rows\n")

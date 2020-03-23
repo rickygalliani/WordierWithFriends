@@ -11,7 +11,9 @@ object Main extends App {
   //   .map(c => Tiles.makeTile(c))
   //   .toSet
 
-  val tiles = List("F", "A", "M", "I", "L", "Y").map(c => Tiles.makeTile(c)).toSet
+  board.makeMove(Move("FAMILY", 0, 0, Move.Vertical))
+
+  val tiles = List("A", "S", "T", "E", "R").map(c => Tiles.makeTile(c)).toSet
 
   board.print
   val moves = board.getMoves(tiles).map(m => (m, board.getMoveScore(m))).toList.sortBy(_._2)

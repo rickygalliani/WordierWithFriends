@@ -130,9 +130,10 @@ class Board {
     }
 
     // Check the validity of the "offshoot" words created
-    val offshootWords = coordinates.zip(move.word.toList).map { case ((x, y), letter) =>    
-      if (move.direction == Move.Horizontal) getVerticalWordsAtPosition(x, y, letter.toString)
-      else getHorizontalWordsAtPosition(x, y, letter.toString)
+    val offshootWords = coordinates.zip(move.word.toList).flatMap { case ((x, y), letter) =>    
+      val verticalWord = getVerticalWordsAtPosition(x, y, letter.toString)
+      val horizontalWord = getHorizontalWordsAtPosition(x, y, letter.toString)
+      Seq(verticalWord, horizontalWord)
     }
     offshootWords.forall(Dictionary.wordIsValid _)
   }

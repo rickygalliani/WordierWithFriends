@@ -23,6 +23,8 @@ class Board {
     Array(rp, rp, rp, tw, rp, rp, tl, rp, tl, rp, rp, tw, rp, rp, rp)
   )
 
+  private val words: ListBuffer[String] = new ListBuffer[String]
+
   private def isEmpty(): Boolean = {
     state.foreach { row => row.foreach(pos => if (pos.getTile.isDefined) return false) }
     true
@@ -72,7 +74,7 @@ class Board {
     else None
   }
 
-  private def getHorizontalWordsAtPosition(x: Int, y: Int, startLetter: String): String = {
+  private def getHorizontalWordAtPosition(x: Int, y: Int, startLetter: String): String = {
   
     var hWord = startLetter
 
@@ -97,7 +99,7 @@ class Board {
     hWord
   }
 
-  private def getVerticalWordsAtPosition(x: Int, y: Int, startLetter: String): String = {
+  private def getVerticalWordAtPosition(x: Int, y: Int, startLetter: String): String = {
   
     var vWord = startLetter
 
@@ -131,8 +133,8 @@ class Board {
 
     // Check the validity of the "offshoot" words created
     val offshootWords = coordinates.zip(move.word.toList).flatMap { case ((x, y), letter) =>    
-      val verticalWord = getVerticalWordsAtPosition(x, y, letter.toString)
-      val horizontalWord = getHorizontalWordsAtPosition(x, y, letter.toString)
+      val verticalWord = getVerticalWordAtPosition(x, y, letter.toString)
+      val horizontalWord = getHorizontalWordAtPosition(x, y, letter.toString)
       Seq(verticalWord, horizontalWord)
     }
     offshootWords.forall(Dictionary.wordIsValid _)
@@ -143,15 +145,39 @@ class Board {
     val tiles = move.word.map(c => Tiles.makeTile(c.toString))
     var score = 0
     var wordFactor = 1
-    // TODO: need to add scores for "offshoot" words!
-    coordinates.zip(tiles).foreach { case ((x, y), tile) => 
+
+    coordinates.zip(tiles).foreach { case ((x, y), tile) =>
+      // First count score contribution from letters in "base" word
       val pos = getPosition(x, y)
       val alreadyOccupied = pos.getTile.isDefined
-      score = {
-        if (!alreadyOccupied) score + tile.points * pos.letterFactor
-        else score + tile.points
-      }
+      val tilePoints = if (!alreadyOccupied) tile.points * pos.letterFactor else tile.points
+      score += tilePoints
       if (!alreadyOccupied) wordFactor *= pos.wordFactor
+
+      // Next count score contribution from letters in "offshoot" words connected to "base" word
+      val vertWord = getVerticalWordAtPosition(x, y, tile.letter)
+      val horWord = getHorizontalWordAtPosition(x, y, tile.letter)
+
+      // "offshoot" words only come in opposite direction of move otherwise they're "base" word
+      // "offshoot" words only count for the score if they were just introduced with this move
+      val newVerticalOffshoot = (
+        !vertWord.equals(tile.letter) &&
+        !words.contains(vertWord) &&
+        !move.direction.equals(Move.Vertical)
+      )
+      val newHorizontalOffshoot = (
+        !horWord.equals(tile.letter) &&
+        !words.contains(horWord) &&
+        !move.direction.equals(Move.Horizontal)
+      )
+      if (newVerticalOffshoot) {
+        val offVert = vertWord.patch(vertWord.lastIndexOf(tile.letter), "", 1)
+        score += tilePoints + offVert.map(c => Tiles.makeTile(c.toString).points).sum
+      }
+      if (newHorizontalOffshoot) {
+        val offHor = horWord.patch(horWord.lastIndexOf(tile.letter), "", 1)
+        score += tilePoints + offHor.map(c => Tiles.makeTile(c.toString).points).sum
+      }
     }
     score *= wordFactor
     score
@@ -203,6 +229,7 @@ class Board {
     val tiles = move.word.map(c => Tiles.makeTile(c.toString))
     // Add the tiles to the board
     coordinates.zip(tiles).foreach { case ((x, y), tile) => setTileAtPosition(x, y, tile) }
+    words += move.word
   }
 
   def print(): Unit = {

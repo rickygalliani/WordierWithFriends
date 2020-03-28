@@ -30,10 +30,7 @@ class Board() {
     true
   }
 
-  def getRow(y: Int): Array[Position] = {
-    val rowIndex = Board.Radius - y
-    state(rowIndex)
-  }
+  def getRow(y: Int): Array[Position] = state(Board.Radius - y)
 
   def getCol(x: Int): Array[Position] = {
     var col = new ListBuffer[Position]
@@ -43,6 +40,14 @@ class Board() {
       col += state(rowIndex)(colIndex)
     }
     col.toArray
+  }
+
+  def getRemainingRow(x: Int, y: Int): Array[Position] = {
+    getRow(y).slice(Board.Radius + x, Board.Width)
+  }
+
+  def getRemainingCol(x: Int, y: Int): Array[Position] = {
+    getCol(x).slice(Board.Radius - y, Board.Width)
   }
 
   def getGridCoordinates(x: Int, y: Int): (Int, Int) = {
@@ -232,8 +237,8 @@ class Board() {
       val row = getRow(y)
       (-1 * Board.Radius to 1 * Board.Radius).foreach { x =>
         val col = getCol(x)
-        val remainingRow = row.slice(x, Board.Width)
-        val remainingCol = col.slice(y, Board.Width)
+        val remainingRow = getRemainingRow(x, y)
+        val remainingCol = getRemainingCol(x, y)
 
         // Compute all words that can start from (x, y) and incorporate letters in row already
         val fixedHorLetters = remainingRow.zipWithIndex.flatMap { case (pos, index) =>

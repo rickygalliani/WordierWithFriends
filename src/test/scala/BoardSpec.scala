@@ -55,6 +55,42 @@ class BoardSpec extends FunSuite {
 
   }
 
+  test("getRemainingRow(): case 1") {
+
+    val board = new Board()
+    val testRemainingRow = board.getRemainingRow(3, 7)
+    val truthRemainingRow = Array(rp, tw, rp, rp, rp)
+    assert(testRemainingRow.zip(truthRemainingRow).forall { case (te, tr) => te.equals(tr) })
+
+  }
+
+  test("getRemainingRow(): case 2") {
+
+    val board = new Board()
+    val testRemainingRow = board.getRemainingRow(-1, 4)
+    val truthRemainingRow = Array(rp, dw, rp, rp, rp, tl, rp, rp, tw)
+    assert(testRemainingRow.zip(truthRemainingRow).forall { case (te, tr) => te.equals(tr) })
+
+  }
+
+  test("getRemainingCol(): case 1") {
+
+    val board = new Board()
+    val testRemainingCol = board.getRemainingCol(-3, -3)
+    val truthRemainingCol = Array(rp, rp, dl, rp, rp)
+    assert(testRemainingCol.zip(truthRemainingCol).forall { case (te, tr) => te.equals(tr) })
+
+  }
+
+  test("getRemainingCol(): case 2") {
+
+    val board = new Board()
+    val testRemainingCol = board.getRemainingCol(7, 7)
+    val truthRemainingCol = Array[Position]()
+    assert(testRemainingCol.zip(truthRemainingCol).forall { case (te, tr) => te.equals(tr) })
+
+  }
+
   test("getGridCoordinates(): case 1") {
 
     val board = new Board()

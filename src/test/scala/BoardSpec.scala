@@ -448,13 +448,4 @@ class BoardSpec extends FunSuite {
 
   }
 
-  // test("moveIsValid(): case 1)") {
-
-  //   val board = new Board()
-  //   board.setTileAtPosition(0, 0, A)
-  //   val move = Move("ABBA", startX, startY, Move.Horizontal)
-
-  // }
-
-
 }

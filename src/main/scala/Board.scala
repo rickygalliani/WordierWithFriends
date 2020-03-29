@@ -176,8 +176,9 @@ class Board() {
 
     // Check the validity of the "offshoot" words created
     val offshootWords = moveOffshootWords(move: Move)
+    val allValidOffshootWords = offshootWords.forall(Dictionary.wordIsValid _)
 
-    offshootWords.forall(Dictionary.wordIsValid _)
+    inValidLocation && notOverwriting && allValidOffshootWords
   }
 
   def getMoves(tiles: Set[Tile]): Set[Move] = {
@@ -186,6 +187,7 @@ class Board() {
     (1 * Board.Radius to -1 * Board.Radius by -1).foreach { y =>
       val row = getRow(y)
       (-1 * Board.Radius to 1 * Board.Radius).foreach { x =>
+        println(s"Identifying words starting from ($x, $y)...")
         val col = getCol(x)
         val remainingRow = getRemainingRow(x, y)
         val remainingCol = getRemainingCol(x, y)
@@ -206,7 +208,16 @@ class Board() {
         verWords.foreach(w => moves += Move(w, x, y, Move.Vertical))
       }
     }
-    moves.filter(m => moveIsValid(m)).toSet
+    
+    val numMoves = moves.size
+    println(s"Identified $numMoves possible moves.")
+    var finalMoves = new ListBuffer[Move]
+    moves.zipWithIndex.foreach { case (move, index) =>
+      println(s"Validating move ${index + 1}/$numMoves...")
+      if (moveIsValid(move)) finalMoves += move
+    }
+    println("Returning ${finalMoves.size} valid moves.")
+    finalMoves.toSet
   }
 
   def getMoveScore(move: Move): Int = {

@@ -27,8 +27,8 @@ object Word {
   // }
 
   def getWordsWithLength(tiles: Set[Tile],
-                         fixedLetters: List[(Int, String)],
-                         length: Int): Set[String] = {
+                            fixedLetters: List[(Int, String)],
+                            length: Int): Set[String] = {
     val allLetters = (tiles.map(_.letter).toList ++ fixedLetters.map(_._2)).toArray
     // Get all permutations of the given tiles and fixed letters that match this length
     allLetters.combinations(length).toArray.flatMap { sub =>

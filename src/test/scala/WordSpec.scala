@@ -32,4 +32,44 @@ class WordSpec extends FunSuite {
 
   }
 
+  test("getWords(): case 1") {
+    val tiles: Set[Tile] = Set(A)
+    val fixedLetters: List[(Int, String)] = List[(Int, String)]()
+    val maxLength: Int = 10
+    val testWords: Set[String] = Word.getWords(tiles, fixedLetters, maxLength)
+    assert(testWords == Set("A"))
+  }
+
+  test("getWords(): case 2") {
+    val tiles: Set[Tile] = Set(A)
+    val fixedLetters: List[(Int, String)] = List((0, "A"))
+    val maxLength: Int = 10
+    val testWords: Set[String] = Word.getWords(tiles, fixedLetters, maxLength)
+    assert(testWords == Set("A", "AA"))
+  }
+
+  test("getWords(): case 3") {
+    val tiles: Set[Tile] = Set(A)
+    val fixedLetters: List[(Int, String)] = List((0, "B"))
+    val maxLength: Int = 10
+    val testWords: Set[String] = Word.getWords(tiles, fixedLetters, maxLength)
+    assert(testWords == Set("BA"))
+  }
+
+  test("getWords(): case 4") {
+    val tiles: Set[Tile] = Set(T)
+    val fixedLetters: List[(Int, String)] = List((1, "E"), (2, "S"), (3, "T"))
+    val maxLength: Int = 3
+    val testWords: Set[String] = Word.getWords(tiles, fixedLetters, maxLength)
+    assert(testWords == Set("TE", "TES"))
+  }
+
+  test("getWords(): case 5") {
+    val tiles: Set[Tile] = Set(T)
+    val fixedLetters: List[(Int, String)] = List((1, "E"), (2, "S"), (3, "T"))
+    val maxLength: Int = 6
+    val testWords: Set[String] = Word.getWords(tiles, fixedLetters, maxLength)
+    assert(testWords == Set("TE", "TES", "TEST"))
+  }
+
 }

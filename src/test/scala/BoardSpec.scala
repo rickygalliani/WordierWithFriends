@@ -222,6 +222,41 @@ class BoardSpec extends FunSuite {
 
   }
 
+  test("getHorizontalWordAtPosition(): case 3") {
+
+    //      0 | 1 | 2 | 3 | 4
+    //  1 | C | A | V | A | -
+    //  0 | A | B | E | A | M
+    // -1 | T | A | X | - | -
+    // -2 | - | C | - | - | -
+    // -3 | - | K | - | - | -
+    val board = new Board()
+
+    // BEAM
+    board.setTileAtPosition(1, 0, B)
+    board.setTileAtPosition(2, 0, E)
+    board.setTileAtPosition(3, 0, A)
+    board.setTileAtPosition(4, 0, M)
+
+    // ABACK
+    board.setTileAtPosition(1, 1, A)
+    board.setTileAtPosition(1, -1, A)
+    board.setTileAtPosition(1, -2, C)
+    board.setTileAtPosition(1, -3, K)
+
+    // VEX
+    board.setTileAtPosition(2, 1, V)
+    board.setTileAtPosition(2, -1, X)
+
+    // AVA
+    board.setTileAtPosition(3, 1, A)
+    
+    assert(board.getHorizontalWordAtPosition(0, 1, "C") == "CAVA")
+    assert(board.getHorizontalWordAtPosition(0, 0, "A") == "ABEAM")
+    assert(board.getHorizontalWordAtPosition(0, -1, "T") == "TAX")
+
+  }
+
   test("getVerticalWordAtPosition(): case 1") {
 
     val board = new Board()
@@ -237,5 +272,176 @@ class BoardSpec extends FunSuite {
     assert(board.getVerticalWordAtPosition(0, 0, "A") == "A")
 
   }
+
+  test("getVerticalWordAtPosition(): case 3") {
+
+    //      0 | 1 | 2 | 3 | 4
+    //  1 | C | A | V | A | -
+    //  0 | A | B | E | A | M
+    // -1 | T | A | X | - | -
+    // -2 | - | C | - | - | -
+    // -3 | - | K | - | - | -
+    val board = new Board()
+
+    // CAVA
+    board.setTileAtPosition(0, 1, C)
+    board.setTileAtPosition(1, 1, A)
+    board.setTileAtPosition(2, 1, V)
+    board.setTileAtPosition(3, 1, A)
+
+    // TAX
+    board.setTileAtPosition(0, -1, T)
+    board.setTileAtPosition(1, -1, A)
+    board.setTileAtPosition(2, -1, X)
+
+    // ABACK
+    board.setTileAtPosition(1, 1, A)
+    board.setTileAtPosition(1, -2, C)
+    board.setTileAtPosition(1, -3, K)
+
+    assert(board.getVerticalWordAtPosition(0, 0, "A") == "CAT")
+    assert(board.getVerticalWordAtPosition(1, 0, "B") == "ABACK")
+    assert(board.getVerticalWordAtPosition(2, 0, "E") == "VEX")
+
+  }
+
+  test("moveInValidLocation(): case 1") {
+
+    val board = new Board()
+    val move = Move("TEST", 0, 0, Move.Horizontal)
+    assert(board.moveInValidLocation(move))
+
+  }
+
+  test("moveInValidLocation(): case 2") {
+
+    val board = new Board()
+    val move = Move("TEST", 0, -3, Move.Vertical)
+    assert(board.moveInValidLocation(move))
+
+  }
+
+  test("moveInValidLocation(): case 3") {
+
+    val board = new Board()
+    val move = Move("TEST", 6, -5, Move.Horizontal)
+    assert(!board.moveInValidLocation(move))
+
+  }
+
+  test("moveInValidLocation(): case 4") {
+
+    val board = new Board()
+    val move = Move("TEST", 0, -4, Move.Vertical)
+    assert(!board.moveInValidLocation(move))
+
+  }
+
+  test("moveDoesntOverwrite(): case 1") {
+
+    val board = new Board()
+    board.setTileAtPosition(0, 0, T)
+    val move = Move("TEST", 0, 0, Move.Horizontal)
+    assert(board.moveDoesntOverwrite(move))
+
+  }
+
+  test("moveDoesntOverwrite(): case 2") {
+
+    val board = new Board()
+    board.setTileAtPosition(0, 0, A)
+    val move = Move("TEST", 0, 0, Move.Horizontal)
+    assert(!board.moveDoesntOverwrite(move))
+
+  }
+
+  test("moveDoesntOverwrite(): case 3") {
+
+    val board = new Board()
+    board.setTileAtPosition(2, 0, S)
+    val move = Move("TEST", 0, 0, Move.Horizontal)
+    assert(board.moveDoesntOverwrite(move))
+
+  }
+
+  test("moveDoesntOverwrite(): case 4") {
+
+    val board = new Board()
+    board.setTileAtPosition(3, 0, P)
+    val move = Move("TEST", 0, 0, Move.Horizontal)
+    assert(!board.moveDoesntOverwrite(move))
+
+  }
+
+  test("moveDoesntOverwrite(): case 5") {
+
+    val board = new Board()
+    board.setTileAtPosition(0, 0, T)
+    board.setTileAtPosition(1, 0, E)
+    board.setTileAtPosition(3, 0, T)
+    val move = Move("TEST", 0, 0, Move.Horizontal)
+    assert(board.moveDoesntOverwrite(move))
+
+  }
+
+  test("moveOffshootWords(): case 1") {
+    //     0 | 1
+    // 1 | I | S
+    // 0 | S | O
+    val board = new Board()
+    board.setTileAtPosition(0, 1, I)
+    board.setTileAtPosition(1, 1, S)
+    val move = Move("SO", 0, 0, Move.Horizontal)
+    assert(board.moveOffshootWords(move) == Set("IS", "SO"))
+
+  }
+
+  test("moveOffshootWords(): case 2") {
+
+    val board = new Board()
+    val move = Move("SO", 0, 0, Move.Horizontal)
+    assert(board.moveOffshootWords(move) == Set())
+
+  }
+
+  test("moveOffshootWords(): case 3") {
+
+    //      0 | 1 | 2 | 3 | 4
+    //  1 | C | A | V | A | -
+    //  0 | A | B | E | A | M
+    // -1 | T | A | X | - | -
+    // -2 | - | C | - | - | -
+    // -3 | - | K | - | - | -
+    val board = new Board()
+
+    // CAVA
+    board.setTileAtPosition(0, 1, C)
+    board.setTileAtPosition(1, 1, A)
+    board.setTileAtPosition(2, 1, V)
+    board.setTileAtPosition(3, 1, A)
+
+    // TAX
+    board.setTileAtPosition(0, -1, T)
+    board.setTileAtPosition(1, -1, A)
+    board.setTileAtPosition(2, -1, X)
+
+    // ABACK
+    board.setTileAtPosition(1, 1, A)
+    board.setTileAtPosition(1, -2, C)
+    board.setTileAtPosition(1, -3, K)
+
+    val move = Move("ABEAM", 0, 0, Move.Horizontal)
+    assert(board.moveOffshootWords(move) == Set("CAT", "ABACK", "VEX", "AA"))
+
+  }
+
+  // test("moveIsValid(): case 1)") {
+
+  //   val board = new Board()
+  //   board.setTileAtPosition(0, 0, A)
+  //   val move = Move("ABBA", startX, startY, Move.Horizontal)
+
+  // }
+
 
 }

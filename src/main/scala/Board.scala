@@ -134,17 +134,47 @@ class Board() {
     vWord
   }
 
-  def moveIsValid(move: Move): Boolean = {
-    // First check whether making the move would "overwrite" existing tiles
+  def moveInValidLocation(move: Move): Boolean = {
     val coordinates = move.getCoordinates()
-    coordinates.tail.foreach { case (x, y) => if (!openPosition(x, y)) return false }
+    coordinates.forall { case (x: Int, y: Int) => Board.validLocation(x, y) } 
+  }
+
+  def moveDoesntOverwrite(move: Move): Boolean = {
+    val coordinates = move.getCoordinates()
+    val moveLetters = move.word.toList
+    coordinates.zip(moveLetters).foreach { case ((x: Int, y: Int), moveLetter: Char) =>
+      if (!openPosition(x, y)) {
+        val boardLetter = getLetterAtPosition(x, y)
+        if (boardLetter.isDefined && boardLetter.get != moveLetter.toString) return false 
+      }
+    }
+    true
+  }
+
+  def moveOffshootWords(move: Move): Set[String] = {
+    val coordinates = move.getCoordinates()
+    val moveLetters = move.word.toList
+    coordinates.zip(moveLetters).flatMap { case ((x: Int, y: Int), moveLetter: Char) =>
+      val verWord = getVerticalWordAtPosition(x, y, moveLetter.toString)
+      val horWord = getHorizontalWordAtPosition(x, y, moveLetter.toString)
+      println(s"(x, y) = ($x, $y)")
+      println(s"verWord = $verWord")
+      println(s"horWord = $horWord")
+      Seq(verWord, horWord).flatMap(w => if (!w.equals(moveLetter.toString)) Option(w) else None)
+    }.toSet
+  }
+
+  def moveIsValid(move: Move): Boolean = {
+
+    // Validate move has valid coordinates
+    val inValidLocation = moveInValidLocation(move: Move)
+
+    // Validate move wouldn't "overwrite" existing tiles
+    val notOverwriting = moveDoesntOverwrite(move: Move)
 
     // Check the validity of the "offshoot" words created
-    val offshootWords = coordinates.zip(move.word.toList).flatMap { case ((x, y), letter) =>    
-      val verWord = getVerticalWordAtPosition(x, y, letter.toString)
-      val horWord = getHorizontalWordAtPosition(x, y, letter.toString)
-      Seq(verWord, horWord).flatMap(w => if (w.equals(letter.toString)) None else Option(w))
-    }
+    val offshootWords = moveOffshootWords(move: Move)
+
     offshootWords.forall(Dictionary.wordIsValid _)
   }
 
@@ -191,48 +221,9 @@ class Board() {
     score
   }
 
-  // def getMoves(tiles: Set[Tile]): Set[Move] = {
-  //   // Compute all the moves with the given tiles and set origin at center of board
-  //   if (isEmpty) getWords(tiles, (1 to tiles.size).toSet).map(w => Move(w, 0, 0, Move.Vertical))  
-  //   else {
-  //     // Traverse grid constructing words composed of the given tiles and those already on grid 
-  //     var moves = new ListBuffer[Move]
-  //     (-1 * Board.Radius to 1 * Board.Radius).foreach { x =>
-  //       (-1 * Board.Radius to 1 * Board.Radius).foreach { y =>
-  //         if (!openPosition(x, y)) {  // Met an occupied tile
-  //           val letters = getPosition(x, y).getTile.get.letter
-  //           // Use occupied tile(s) as prefix for horizontal words
-  //           var maxAfterX = x + 1
-  //           while (openPosition(maxAfterX, y)) maxAfterX += 1
-  //           val hAfter = getWords(tiles, (2 until maxAfterX - x).toSet, prefix = letters)
-  //           hAfter.foreach(w => moves += Move(w, x, y, Move.Horizontal))
-
-  //           // Use occupied tile(s) as suffix for horizontal words
-  //           var maxBeforeX = x - 1
-  //           while (openPosition(maxBeforeX, y)) maxBeforeX -= 1
-  //           val hBefore = getWords(tiles, (2 until maxBeforeX - x).toSet, suffix = letters)
-  //           hBefore.foreach(w => moves += Move(w, x, y, Move.Horizontal))
-
-  //           // Use occupied tile(s) as prefix for vertical words
-  //           var maxAfterY = y + 1
-  //           while (openPosition(x, maxAfterY)) maxAfterY += 1
-  //           val vAfter = getWords(tiles, (2 until maxAfterY - y).toSet, prefix = letters)
-  //           vAfter.foreach(w => moves += Move(w, x, y, Move.Vertical))
-
-  //           // Use occupied tile(s) as suffix for vertical words
-  //           var maxBeforeY = y - 1
-  //           while (openPosition(x, maxBeforeY)) maxBeforeY -= 1
-  //           val vBefore = getWords(tiles, (2 until maxBeforeY - y).toSet, suffix = letters)
-  //           vBefore.foreach(w => moves += Move(w, x, y, Move.Vertical))          
-  //         }
-  //       }
-  //     }
-  //     moves.filter(m => moveIsValid(m)).toSet
-  //   }
-  // }
-
-  def getMovesV2(tiles: Set[Tile]): Set[Move] = {
+  def getMoves(tiles: Set[Tile]): Set[Move] = {
     var moves = new ListBuffer[Move]
+    // Traverse board in left-to-right and top-down order
     (1 * Board.Radius to -1 * Board.Radius by -1).foreach { y =>
       val row = getRow(y)
       (-1 * Board.Radius to 1 * Board.Radius).foreach { x =>

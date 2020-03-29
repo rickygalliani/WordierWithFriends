@@ -136,7 +136,12 @@ class Board() {
 
   def moveInValidLocation(move: Move): Boolean = {
     val coordinates = move.getCoordinates()
-    coordinates.forall { case (x: Int, y: Int) => Board.validLocation(x, y) } 
+    val allWithinBoard = coordinates.forall { case (x: Int, y: Int) => Board.validLocation(x, y) }
+    val touchesOriginIfNecessary = if (isEmpty()) {
+      // No move has been played yet, move has to touch (0, 0)
+      coordinates.contains(0, 0)
+    } else true
+    allWithinBoard && touchesOriginIfNecessary
   }
 
   def moveDoesntOverwrite(move: Move): Boolean = {
@@ -157,9 +162,6 @@ class Board() {
     coordinates.zip(moveLetters).flatMap { case ((x: Int, y: Int), moveLetter: Char) =>
       val verWord = getVerticalWordAtPosition(x, y, moveLetter.toString)
       val horWord = getHorizontalWordAtPosition(x, y, moveLetter.toString)
-      println(s"(x, y) = ($x, $y)")
-      println(s"verWord = $verWord")
-      println(s"horWord = $horWord")
       Seq(verWord, horWord).flatMap(w => if (!w.equals(moveLetter.toString)) Option(w) else None)
     }.toSet
   }
@@ -176,6 +178,35 @@ class Board() {
     val offshootWords = moveOffshootWords(move: Move)
 
     offshootWords.forall(Dictionary.wordIsValid _)
+  }
+
+  def getMoves(tiles: Set[Tile]): Set[Move] = {
+    var moves = new ListBuffer[Move]
+    // Traverse board in left-to-right and top-down order
+    (1 * Board.Radius to -1 * Board.Radius by -1).foreach { y =>
+      val row = getRow(y)
+      (-1 * Board.Radius to 1 * Board.Radius).foreach { x =>
+        val col = getCol(x)
+        val remainingRow = getRemainingRow(x, y)
+        val remainingCol = getRemainingCol(x, y)
+
+        // Compute all words that can start from (x, y) and incorporate letters in row already
+        val fixedHorLetters = remainingRow.zipWithIndex.flatMap { case (pos, index) =>
+          if (!pos.isOpen()) Option((index, pos.getTile.get.letter)) else None
+        }.toList
+        val horWords = getWords(tiles, fixedHorLetters, remainingRow.length)
+
+        // Compute all words that can start from (x, y) and incorporate letters in column already
+        val fixedVerLetters = remainingCol.zipWithIndex.flatMap { case (pos, index) =>
+          if (!pos.isOpen()) Option((index, pos.getTile.get.letter)) else None
+        }.toList
+        val verWords = getWords(tiles, fixedVerLetters, remainingCol.length)
+
+        horWords.foreach(w => moves += Move(w, x, y, Move.Horizontal))
+        verWords.foreach(w => moves += Move(w, x, y, Move.Vertical))
+      }
+    }
+    moves.filter(m => moveIsValid(m)).toSet
   }
 
   def getMoveScore(move: Move): Int = {
@@ -219,35 +250,6 @@ class Board() {
     }
     score *= wordFactor
     score
-  }
-
-  def getMoves(tiles: Set[Tile]): Set[Move] = {
-    var moves = new ListBuffer[Move]
-    // Traverse board in left-to-right and top-down order
-    (1 * Board.Radius to -1 * Board.Radius by -1).foreach { y =>
-      val row = getRow(y)
-      (-1 * Board.Radius to 1 * Board.Radius).foreach { x =>
-        val col = getCol(x)
-        val remainingRow = getRemainingRow(x, y)
-        val remainingCol = getRemainingCol(x, y)
-
-        // Compute all words that can start from (x, y) and incorporate letters in row already
-        val fixedHorLetters = remainingRow.zipWithIndex.flatMap { case (pos, index) =>
-          if (!pos.isOpen()) Option((index, pos.getTile.get.letter)) else None
-        }.toList
-        val horWords = getWords(tiles, fixedHorLetters, remainingRow.length)
-
-        // Compute all words that can start from (x, y) and incorporate letters in column already
-        val fixedVerLetters = remainingCol.zipWithIndex.flatMap { case (pos, index) =>
-          if (!pos.isOpen()) Option((index, pos.getTile.get.letter)) else None
-        }.toList
-        val verWords = getWords(tiles, fixedVerLetters, remainingCol.length)
-
-        horWords.foreach(w => moves += Move(w, x, y, Move.Horizontal))
-        verWords.foreach(w => moves += Move(w, x, y, Move.Vertical))
-      }
-    }
-    moves.filter(m => moveIsValid(m)).toSet
   }
 
   def makeMove(move: Move): Unit = {

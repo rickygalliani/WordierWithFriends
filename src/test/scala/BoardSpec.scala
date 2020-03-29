@@ -308,6 +308,7 @@ class BoardSpec extends FunSuite {
   test("moveInValidLocation(): case 1") {
 
     val board = new Board()
+    board.setTileAtPosition(0, -5, A)
     val move = Move("TEST", 0, 0, Move.Horizontal)
     assert(board.moveInValidLocation(move))
 
@@ -316,6 +317,7 @@ class BoardSpec extends FunSuite {
   test("moveInValidLocation(): case 2") {
 
     val board = new Board()
+    board.setTileAtPosition(0, 0, A)
     val move = Move("TEST", 0, -3, Move.Vertical)
     assert(board.moveInValidLocation(move))
 
@@ -324,6 +326,7 @@ class BoardSpec extends FunSuite {
   test("moveInValidLocation(): case 3") {
 
     val board = new Board()
+    board.setTileAtPosition(0, 0, A)
     val move = Move("TEST", 6, -5, Move.Horizontal)
     assert(!board.moveInValidLocation(move))
 
@@ -332,7 +335,17 @@ class BoardSpec extends FunSuite {
   test("moveInValidLocation(): case 4") {
 
     val board = new Board()
+    board.setTileAtPosition(0, 0, A)
     val move = Move("TEST", 0, -4, Move.Vertical)
+    assert(!board.moveInValidLocation(move))
+
+  }
+
+  test("moveInValidLocation(): case 5") {
+
+    // Move on empty board needs to touch origin
+    val board = new Board()
+    val move = Move("TEST", 2, 3, Move.Horizontal)
     assert(!board.moveInValidLocation(move))
 
   }

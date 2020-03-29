@@ -184,7 +184,8 @@ class Board() {
   def getMoves(tiles: Set[Tile]): Set[Move] = {
     var moves = new ListBuffer[Move]
     // Traverse board in left-to-right and top-down order
-    (1 * Board.Radius to -1 * Board.Radius by -1).foreach { y =>
+    // (1 * Board.Radius to -1 * Board.Radius by -1).foreach { y =>
+    (0 to -1 * Board.Radius by -1).foreach { y =>
       val row = getRow(y)
       (-1 * Board.Radius to 1 * Board.Radius).foreach { x =>
         println(s"Identifying words starting from ($x, $y)...")
@@ -196,6 +197,7 @@ class Board() {
         val fixedHorLetters = remainingRow.zipWithIndex.flatMap { case (pos, index) =>
           if (!pos.isOpen()) Option((index, pos.getTile.get.letter)) else None
         }.toList
+        println(s"fixedHorLetters = ${fixedHorLetters.mkString(",")}")
         val horWords = getWords(tiles, fixedHorLetters, remainingRow.length)
 
         // Compute all words that can start from (x, y) and incorporate letters in column already
@@ -204,6 +206,8 @@ class Board() {
         }.toList
         val verWords = getWords(tiles, fixedVerLetters, remainingCol.length)
 
+        println(s"horWords = ${horWords.mkString(",")}")
+        println(s"verWords = ${verWords.mkString(",")}")
         horWords.foreach(w => moves += Move(w, x, y, Move.Horizontal))
         verWords.foreach(w => moves += Move(w, x, y, Move.Vertical))
       }

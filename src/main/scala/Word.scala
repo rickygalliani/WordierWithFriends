@@ -1,42 +1,40 @@
+import scala.collection.mutable.ListBuffer 
+
 object Word {
 
-  // def getWordsForLength(tiles: Set[Tile],
-  //                       length: Int,
-  //                       prefix: String = "",
-  //                       suffix: String = ""): Set[String] = {
-  //   val numAlreadyFixed = prefix.length + suffix.length
-  //   if (numAlreadyFixed > length) throw new IllegalArgumentException("Invalid prefix or suffix")
-  //   val validWords = {
-  //     // All subsets of the tiles of the current length
-  //     tiles.toArray.combinations(length - numAlreadyFixed).toList.flatMap { sub => 
-  //       // Check all permutations of each tile subset
-  //       sub.permutations.toArray.flatMap { ord => 
-  //         val word = s"${prefix}${Tiles.getWord(ord)}${suffix}"
-  //         if (Dictionary.wordIsValid(word)) Option(word) else None
-  //       }
-  //     }
-  //   }
-  //   validWords.toSet
-  // }
-
-  // def getWords(tiles: Set[Tile],
-  //              lengths: Set[Int],
-  //              prefix: String = "",
-  //              suffix: String = ""): Set[String] = {
-  //   lengths.flatMap(len => getWordsForLength(tiles, len, prefix, suffix))
-  // }
+  def constructWord(ordering: List[String], fixedLetters: List[(Int, String)]): String = {
+    var ordIndex = 0
+    var word = new ListBuffer[String]
+    // Add ordered letters in between fixed letters
+    fixedLetters.foreach { case (letterIndex, letter) =>
+      while (word.length < letterIndex) {
+        word += ordering(ordIndex)
+        ordIndex += 1
+      }
+      word += letter
+    }
+    // Add rest of ordering to word
+    word += ordering.slice(ordIndex, ordering.length).mkString
+    word.mkString
+  }
 
   def getWordsWithLength(tiles: Set[Tile],
-                            fixedLetters: List[(Int, String)],
-                            length: Int): Set[String] = {
-    val allLetters = (tiles.map(_.letter).toList ++ fixedLetters.map(_._2)).toArray
+                         fixedLetters: List[(Int, String)],
+                         length: Int): Set[String] = {
+    // If letter at length + 1 obstructs construction of word of length, just return
+    val letterEnd: String = fixedLetters.filter(_._1 == length).map(_._2).headOption.getOrElse("")
+    if (letterEnd.nonEmpty) return Set[String]()
+
+    val fixedLettersWithinLength = fixedLetters.filter(_._1 < length)
+    val letters = tiles.map(_.letter).toList
+    val tilesToUse = length - fixedLettersWithinLength.length
     // Get all permutations of the given tiles and fixed letters that match this length
-    allLetters.combinations(length).toArray.flatMap { sub =>
-      sub.permutations.toArray.flatMap { word =>
-        // Ignore permutations that don't have the same fixed letters
-        val valOrdering = fixedLetters.map { case (ind, let) => word(ind) == let }.forall(identity)
+    letters.combinations(tilesToUse).toArray.flatMap { sub =>
+      sub.permutations.toArray.flatMap { ordering =>
+        val word = constructWord(ordering, fixedLettersWithinLength)
+        println(s"Looking at word: ${word.mkString}")
         val valWord = Dictionary.wordIsValid(word.mkString)
-        if (valOrdering && valWord) Option(word.mkString) else None
+        if (valWord) Option(word.mkString) else None
       }
     }.toSet
   }
@@ -45,8 +43,9 @@ object Word {
                fixedLetters: List[(Int, String)],
                maxLength: Int): Set[String] = {
     (1 to maxLength).flatMap { len =>
+      println(s"Working on len: $len")
       // Only keep the letters that are fixed within the current length
-      getWordsWithLength(tiles, fixedLetters.filter(_._1 < len), len)
+      getWordsWithLength(tiles, fixedLetters, len)
     }.toSet
   }
 

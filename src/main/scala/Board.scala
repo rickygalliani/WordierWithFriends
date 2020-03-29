@@ -137,23 +137,29 @@ class Board() {
   def moveInValidLocation(move: Move): Boolean = {
     val coordinates = move.getCoordinates()
     val allWithinBoard = coordinates.forall { case (x: Int, y: Int) => Board.validLocation(x, y) }
-    val touchesOriginIfNecessary = if (isEmpty()) {
+    val touchesNecessary = if (isEmpty()) {
       // No move has been played yet, move has to touch (0, 0)
       coordinates.contains(0, 0)
-    } else true
-    allWithinBoard && touchesOriginIfNecessary
+    } else {
+      // Moves have been played, move needs to touch an existing word
+      coordinates.exists { case (x, y) => !openPosition(x, y) }
+    }
+    allWithinBoard && touchesNecessary
   }
 
   def moveDoesntOverwrite(move: Move): Boolean = {
     val coordinates = move.getCoordinates()
     val moveLetters = move.word.toList
+    var addedALetter = false
     coordinates.zip(moveLetters).foreach { case ((x: Int, y: Int), moveLetter: Char) =>
       if (!openPosition(x, y)) {
         val boardLetter = getLetterAtPosition(x, y)
+        // Move cant change any letter already on the board
         if (boardLetter.isDefined && boardLetter.get != moveLetter.toString) return false 
       }
+      else addedALetter = true
     }
-    true
+    addedALetter  // A move is "overwriting" if it's copying a word already on the board
   }
 
   def moveOffshootWords(move: Move): Set[String] = {
@@ -188,7 +194,7 @@ class Board() {
     (0 to -1 * Board.Radius by -1).foreach { y =>
       val row = getRow(y)
       (-1 * Board.Radius to 1 * Board.Radius).foreach { x =>
-        println(s"Identifying words starting from ($x, $y)...")
+        printf(s"\rIdentifying words starting from ($x, $y)...")
         val col = getCol(x)
         val remainingRow = getRemainingRow(x, y)
         val remainingCol = getRemainingCol(x, y)
@@ -197,7 +203,7 @@ class Board() {
         val fixedHorLetters = remainingRow.zipWithIndex.flatMap { case (pos, index) =>
           if (!pos.isOpen()) Option((index, pos.getTile.get.letter)) else None
         }.toList
-        println(s"fixedHorLetters = ${fixedHorLetters.mkString(",")}")
+        // println(s"fixedHorLetters = ${fixedHorLetters.mkString(",")}")
         val horWords = getWords(tiles, fixedHorLetters, remainingRow.length)
 
         // Compute all words that can start from (x, y) and incorporate letters in column already
@@ -206,21 +212,21 @@ class Board() {
         }.toList
         val verWords = getWords(tiles, fixedVerLetters, remainingCol.length)
 
-        println(s"horWords = ${horWords.mkString(",")}")
-        println(s"verWords = ${verWords.mkString(",")}")
+        // println(s"horWords = ${horWords.mkString(",")}")
+        // println(s"verWords = ${verWords.mkString(",")}")
         horWords.foreach(w => moves += Move(w, x, y, Move.Horizontal))
         verWords.foreach(w => moves += Move(w, x, y, Move.Vertical))
       }
     }
     
     val numMoves = moves.size
-    println(s"Identified $numMoves possible moves.")
+    println(s"\nIdentified $numMoves possible moves.")
     var finalMoves = new ListBuffer[Move]
     moves.zipWithIndex.foreach { case (move, index) =>
-      println(s"Validating move ${index + 1}/$numMoves...")
+      printf(s"\rValidating move ${index + 1}/$numMoves...")
       if (moveIsValid(move)) finalMoves += move
     }
-    println("Returning ${finalMoves.size} valid moves.")
+    println(s"\nReturning ${finalMoves.size} valid moves.")
     finalMoves.toSet
   }
 

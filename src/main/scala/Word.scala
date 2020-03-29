@@ -13,8 +13,7 @@ object Word {
       }
       word += letter
     }
-    // Add rest of ordering to word
-    word += ordering.slice(ordIndex, ordering.length).mkString
+    word += ordering.slice(ordIndex, ordering.length).mkString  // Add rest of ordering to word
     word.mkString
   }
 
@@ -32,7 +31,6 @@ object Word {
     letters.combinations(tilesToUse).toArray.flatMap { sub =>
       sub.permutations.toArray.flatMap { ordering =>
         val word = constructWord(ordering, fixedLettersWithinLength)
-        println(s"Looking at word: ${word.mkString}")
         val valWord = Dictionary.wordIsValid(word.mkString)
         if (valWord) Option(word.mkString) else None
       }
@@ -43,7 +41,6 @@ object Word {
                fixedLetters: List[(Int, String)],
                maxLength: Int): Set[String] = {
     (1 to maxLength).flatMap { len =>
-      println(s"Working on len: $len")
       // Only keep the letters that are fixed within the current length
       getWordsWithLength(tiles, fixedLetters, len)
     }.toSet

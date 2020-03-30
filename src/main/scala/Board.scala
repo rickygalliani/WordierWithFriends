@@ -156,7 +156,7 @@ class Board() {
       if (!openPosition(x, y)) {
         val boardLetter = getLetterAtPosition(x, y)
         // Move cant change any letter already on the board
-        if (boardLetter.isDefined && boardLetter.get != moveLetter.toString) return false 
+        if (boardLetter.isDefined && boardLetter.get != moveLetter.toString) return false
       }
       else addedALetter = true
     }
@@ -164,13 +164,48 @@ class Board() {
   }
 
   def moveOffshootWords(move: Move): Set[String] = {
-    val coordinates = move.getCoordinates()
-    val moveLetters = move.word.toList
-    coordinates.zip(moveLetters).flatMap { case ((x: Int, y: Int), moveLetter: Char) =>
-      val verWord = getVerticalWordAtPosition(x, y, moveLetter.toString)
-      val horWord = getHorizontalWordAtPosition(x, y, moveLetter.toString)
-      Seq(verWord, horWord).flatMap(w => if (!w.equals(moveLetter.toString)) Option(w) else None)
-    }.toSet
+    var coordinates = move.getCoordinates()
+
+    // "Offshoot" words include the word includes the tiles at the bookends of the current move
+    val beforeCoordinates = {
+      if (move.direction == Move.Horizontal) (coordinates.head._1 - 1, coordinates.head._2)
+      else (coordinates.head._1, coordinates.head._2 + 1)
+    }
+    val afterCoordinates = {
+      if (move.direction == Move.Horizontal) (coordinates.last._1 + 1, coordinates.last._2)
+      else (coordinates.last._1, coordinates.last._2 - 1)  
+    }
+    val beforeLetter = {
+      getLetterAtPosition(beforeCoordinates._1, beforeCoordinates._2).getOrElse("")
+    }
+    val afterLetter = {
+      getLetterAtPosition(afterCoordinates._1, afterCoordinates._2).getOrElse("")
+    }
+    val bookendWord = {
+      if (beforeLetter.nonEmpty || afterLetter.nonEmpty) {
+        s"${beforeLetter}${move.word}${afterLetter}"
+      }
+      else ""
+    }
+    val letters = move.word.toList.map(_.toString)
+
+    // "Offshoot" words also include words that start from the letters in this move
+    coordinates.zip(letters).flatMap { case ((x: Int, y: Int), letter: String) =>
+      val (verWord, horWord) = {
+        (getVerticalWordAtPosition(x, y, letter), getHorizontalWordAtPosition(x, y, letter))
+      }
+      var offshootWords = new ListBuffer[String]()
+      // Don't include "offshoot" words that are subsets of the bookend word. This happens at the
+      // bookends of the move word. Also don't include "offshoot" words that are just the letter.
+      if (move.direction == Move.Vertical) {
+        if (!bookendWord.contains(verWord) && !verWord.equals(letter)) offshootWords += verWord
+        if (!horWord.equals(letter)) offshootWords += horWord
+      } else {
+        if (!bookendWord.contains(horWord) && !horWord.equals(letter)) offshootWords += horWord
+        if (!verWord.equals(letter)) offshootWords += verWord
+      }
+      offshootWords
+    }.toSet ++ (if (bookendWord.nonEmpty) Set(bookendWord) else Set())
   }
 
   def moveIsValid(move: Move): Boolean = {

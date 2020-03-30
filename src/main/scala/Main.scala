@@ -18,10 +18,9 @@ object Main extends App {
   val tiles = Seq("I", "L", "V", "R", "N", "B", "P").map(c => Tiles.makeTile(c)).toSet
 
   val moves = board.getMoves(tiles)
-  println(s"moves = ${moves.mkString("\n")}")
-    // .map(m => (m, board.getMoveScore(m)))
-    // .toList
-    // .sortBy(_._2)(Ordering[Int].reverse)
+    .map(m => (m, board.getMoveScore(m)))
+    .toList
+    .sortBy(_._2)(Ordering[Int].reverse)
 
-  // moves.foreach(m => println(s"${m._1.asString} ${m._2}"))
+  moves.foreach(m => println(s"${m._1.asString} ${m._2}"))
 }

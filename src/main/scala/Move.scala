@@ -4,7 +4,7 @@ case class Move(word: String, startX: Int, startY: Int, direction: Int) {
     if (direction == Move.Horizontal) {
       (0 until word.length).toList.map(addX => (startX + addX, startY))
     }
-    else (0 to word.length).toList.map(addY => (startX, startY - addY))
+    else (0 until word.length).toList.map(addY => (startX, startY - addY))
   }
 
   def asString(): String = {

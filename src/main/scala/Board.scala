@@ -1,4 +1,5 @@
-import scala.collection.mutable.ListBuffer 
+import scala.collection.mutable.ListBuffer
+import scala.collection.mutable.Map 
 
 import Position.{rp, dl, tl, dw, tw}
 import Word.getWords
@@ -187,33 +188,76 @@ class Board() {
     inValidLocation && notOverwriting && allValidOffshootWords
   }
 
+  def getFixedLetters(): (Map[Int, List[(Int, String)]], Map[Int, List[(Int, String)]]) = {
+
+    var fixedRowLetters = Map[Int, List[(Int, String)]]()  // row index -> fixed row letters
+    var fixedColLetters = Map[Int, List[(Int, String)]]()  // col index -> fixed col letters
+
+    (1 * Board.Radius to -1 * Board.Radius by -1).foreach { y =>
+      val row = getRow(y)
+      val fixedHorLetters = row.zipWithIndex.flatMap { case (pos, index) =>
+        if (!pos.isOpen()) Option((index, pos.getTile.get.letter)) else None
+      }.toList
+      fixedRowLetters += (y -> fixedHorLetters)
+    }
+
+    (1 * Board.Radius to -1 * Board.Radius by -1).foreach { x =>
+      val col = getCol(x)
+      val fixedVerLetters = col.zipWithIndex.flatMap { case (pos, index) =>
+        if (!pos.isOpen()) Option((index, pos.getTile.get.letter)) else None
+      }.toList
+      fixedColLetters += (x -> fixedVerLetters)
+    }
+
+    (fixedRowLetters, fixedColLetters)
+  }
+
   def getMoves(tiles: Set[Tile]): Set[Move] = {
     var moves = new ListBuffer[Move]
+    
+    // Get map of which letters are already fixed on the board
+    val (rowLetters, colLetters) = getFixedLetters()
+
     // Traverse board in left-to-right and top-down order
-    // (1 * Board.Radius to -1 * Board.Radius by -1).foreach { y =>
-    (0 to -1 * Board.Radius by -1).foreach { y =>
+    (1 * Board.Radius to -1 * Board.Radius by -1).foreach { y =>
+      
       val row = getRow(y)
+      val fixedRowLetters = rowLetters(y)
+      val fixedRowIndexes = fixedRowLetters.map(_._1)
+
       (-1 * Board.Radius to 1 * Board.Radius).foreach { x =>
         printf(s"\rIdentifying words starting from ($x, $y)...")
         val col = getCol(x)
         val remainingRow = getRemainingRow(x, y)
         val remainingCol = getRemainingCol(x, y)
+        val fixedColLetters = colLetters(x)
+        val fixedColIndexes = fixedColLetters.map(_._1)
 
-        // Compute all words that can start from (x, y) and incorporate letters in row already
-        val fixedHorLetters = remainingRow.zipWithIndex.flatMap { case (pos, index) =>
-          if (!pos.isOpen()) Option((index, pos.getTile.get.letter)) else None
-        }.toList
-        // println(s"fixedHorLetters = ${fixedHorLetters.mkString(",")}")
-        val horWords = getWords(tiles, fixedHorLetters, remainingRow.length)
-
-        // Compute all words that can start from (x, y) and incorporate letters in column already
-        val fixedVerLetters = remainingCol.zipWithIndex.flatMap { case (pos, index) =>
-          if (!pos.isOpen()) Option((index, pos.getTile.get.letter)) else None
-        }.toList
-        val verWords = getWords(tiles, fixedVerLetters, remainingCol.length)
-
-        // println(s"horWords = ${horWords.mkString(",")}")
-        // println(s"verWords = ${verWords.mkString(",")}")
+        // All words are "discovered" from their left-most or top-most position.
+        // So, can't start or end a brand new word right before an existing letter
+        var horWords = {
+          if (fixedRowIndexes.contains(x - 1)) Set[String]()
+          else {
+            val filteredFixedRowLetters = fixedColLetters
+              .filter(_._1 >= x)
+              .map { case (index, word) =>  // Set x to be 0 "start of word"
+                ((index + Board.Radius) - (x + Board.Radius), word)
+              }
+            getWords(tiles, filteredFixedRowLetters, remainingRow.length)
+          }
+        }.filter(w => !fixedRowIndexes.contains(x + w.length))
+        var verWords = {
+          if (fixedColLetters.map(_._1).contains(y - 1)) Set[String]()
+          else {
+            val filteredFixedColLetters = fixedColLetters
+              .filter(_._1 <= y)
+              .map { case (index, word) =>  // Set y to be 0 "start of word"
+                ((index + Board.Radius) - (y + Board.Radius), word)
+              }
+            getWords(tiles, filteredFixedColLetters, remainingCol.length)
+          }    
+        }.filter(w => !fixedColIndexes.contains(y + w.length))
+        
         horWords.foreach(w => moves += Move(w, x, y, Move.Horizontal))
         verWords.foreach(w => moves += Move(w, x, y, Move.Vertical))
       }

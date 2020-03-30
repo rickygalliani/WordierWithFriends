@@ -20,10 +20,6 @@ object Word {
   def getWordsWithLength(tiles: Set[Tile],
                          fixedLetters: List[(Int, String)],
                          length: Int): Set[String] = {
-    // If letter at length + 1 obstructs construction of word of length, just return
-    val letterEnd: String = fixedLetters.filter(_._1 == length).map(_._2).headOption.getOrElse("")
-    if (letterEnd.nonEmpty) return Set[String]()
-
     val fixedLettersWithinLength = fixedLetters.filter(_._1 < length)
     val letters = tiles.map(_.letter).toList
     val tilesToUse = length - fixedLettersWithinLength.length

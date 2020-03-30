@@ -55,7 +55,7 @@ class WordSpec extends FunSuite {
     val fixedLetters: List[(Int, String)] = List((1, "E"), (2, "S"), (3, "T"))
     val maxLength: Int = 3
     val testWords: Set[String] = Word.getWords(tiles, fixedLetters, maxLength)
-    assert(testWords == Set())
+    assert(testWords == Set("TE", "TES"))
   }
 
   test("getWords(): case 5") {

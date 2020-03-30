@@ -1,4 +1,6 @@
 import org.scalatest.FunSuite
+
+import scala.collection.mutable.Map
   
 import Position.{rp, dl, tl, dw, tw}
 
@@ -399,6 +401,42 @@ class BoardSpec extends FunSuite {
     val move = Move("ABEAM", 0, 0, Move.Horizontal)
     val offshootWords = Set("CAT", "ABACK", "VEX", "AA")
     assert(board.moveOffshootWords(move) == offshootWords)
+  }
+
+  test("getFixedLetters(): case 1") {
+    val board = new Board()
+    val (testFixedRowLetters, testFixedColLetters) = board.getFixedLetters()
+    var truthFixedRowLetters = Map[Int, List[(Int, String)]]()
+    var truthFixedColLetters = Map[Int, List[(Int, String)]]()
+    (-1 * Board.Radius to Board.Radius).foreach { n =>
+      truthFixedRowLetters += (n -> List[(Int, String)]())
+      truthFixedColLetters += (n -> List[(Int, String)]())
+    }
+    assert(testFixedRowLetters == truthFixedRowLetters)
+    assert(testFixedColLetters == truthFixedColLetters)
+  }
+
+  test("getFixedLetters(): case 2") {
+    val board = new Board()
+    board.setTileAtPosition(0, 0, A)
+    board.setTileAtPosition(-7, 7, B)
+    board.setTileAtPosition(3, -4, C)
+    val (testFixedRowLetters, testFixedColLetters) = board.getFixedLetters()
+    var truthFixedRowLetters = Map[Int, List[(Int, String)]]()
+    var truthFixedColLetters = Map[Int, List[(Int, String)]]()
+    (-1 * Board.Radius to Board.Radius).foreach { n =>
+      truthFixedRowLetters += (n -> List[(Int, String)]())
+      truthFixedColLetters += (n -> List[(Int, String)]())
+    }
+    truthFixedRowLetters += (0 -> List((7, "A")))
+    truthFixedRowLetters += (7 -> List((0, "B")))
+    truthFixedRowLetters += (-4 -> List((10, "C")))
+    truthFixedColLetters += (0 -> List((7, "A")))
+    truthFixedColLetters += (-7 -> List((0, "B")))
+    truthFixedColLetters += (3 -> List((11, "C")))
+
+    assert(testFixedRowLetters == truthFixedRowLetters)
+    assert(testFixedColLetters == truthFixedColLetters)
   }
 
 }

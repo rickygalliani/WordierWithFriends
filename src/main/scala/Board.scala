@@ -238,23 +238,15 @@ class Board() {
         var horWords = {
           if (fixedRowIndexes.contains(x - 1)) Set[String]()
           else {
-            val filteredFixedRowLetters = fixedColLetters
-              .filter(_._1 >= x)
-              .map { case (index, word) =>  // Set x to be 0 "start of word"
-                ((index + Board.Radius) - (x + Board.Radius), word)
-              }
-            getWords(tiles, filteredFixedRowLetters, remainingRow.length)
+            val remainingRowLetters = Board.remainingFixedRowLetters(x, fixedRowLetters)
+            getWords(tiles, remainingRowLetters, remainingRow.length)
           }
         }.filter(w => !fixedRowIndexes.contains(x + w.length))
         var verWords = {
           if (fixedColLetters.map(_._1).contains(y - 1)) Set[String]()
           else {
-            val filteredFixedColLetters = fixedColLetters
-              .filter(_._1 <= y)
-              .map { case (index, word) =>  // Set y to be 0 "start of word"
-                ((index + Board.Radius) - (y + Board.Radius), word)
-              }
-            getWords(tiles, filteredFixedColLetters, remainingCol.length)
+            val remainingColLetters = Board.remainingFixedColLetters(y, fixedColLetters)
+            getWords(tiles, remainingColLetters, remainingCol.length)
           }    
         }.filter(w => !fixedColIndexes.contains(y + w.length))
         
@@ -341,7 +333,25 @@ object Board {
   val Radius = Width / 2
 
   def validLocation(x: Int, y: Int): Boolean = {
-    math.abs(x) <= Board.Radius && math.abs(y) <= Board.Radius
+    math.abs(x) <= Radius && math.abs(y) <= Radius
+  }
+
+  def remainingFixedRowLetters(x: Int, fixedLetters: List[(Int, String)]): List[(Int, String)] = {
+    fixedLetters
+      .filter(_._1 >= x)  // Filter out ones that are before this starting position
+      .map { case (index, word) =>  // Set x to be 0 "start of word"
+        ((index + Radius) - (x + Radius), word)
+      }
+      .sortBy(_._1)
+  }
+
+  def remainingFixedColLetters(y: Int, fixedLetters: List[(Int, String)]): List[(Int, String)] = {
+    fixedLetters
+      .filter(_._1 <= y)  // Filter out ones that are before this starting position
+      .map { case (index, word) =>  // Set y to be 0 "start of word"
+        ((y + Radius) - (index + Radius), word)
+      }
+      .sortBy(_._1)
   }
 
 }

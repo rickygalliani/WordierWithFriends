@@ -6,7 +6,18 @@ object Main extends App {
 
   val board = new Board()
 
-  board.makeMove(Move("FUND", -2, 0, Move.Horizontal))
+  board.makeMove(Move("FUNDS", -2, 0, Move.Horizontal))
+  board.makeMove(Move("FIX", -3, 1, Move.Horizontal))
+  board.makeMove(Move("POSER", 2, 2, Move.Vertical))
+  board.makeMove(Move("EVIL", 2, -1, Move.Horizontal))
+  board.makeMove(Move("NIPS", 4, 0, Move.Vertical))
+  board.makeMove(Move("PORN", 4, -2, Move.Horizontal))
+  board.makeMove(Move("GNAT", 7, -1, Move.Vertical))
+  board.makeMove(Move("WALER", -2, -2, Move.Horizontal))
+  board.makeMove(Move("FIX", -3, 1, Move.Horizontal))
+  board.makeMove(Move("RAH", -1, -3, Move.Horizontal))
+  board.makeMove(Move("LATHE", 0, -2, Move.Vertical))
+  board.makeMove(Move("DEUCE", -1, -6, Move.Horizontal))
 
   board.print
 
@@ -15,7 +26,7 @@ object Main extends App {
   //   .map(c => Tiles.makeTile(c))
   //   .toSet
 
-  val tiles = Seq("I", "L", "V", "R", "N", "B", "P").map(c => Tiles.makeTile(c)).toSet
+  val tiles = Seq("B", "T", "B", "Z", "G", "E", "G").map(c => Tiles.makeTile(c)).toSet
 
   val moves = board.getMoves(tiles)
     .map(m => (m, board.getMoveScore(m)))

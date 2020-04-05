@@ -18,6 +18,11 @@ object Main extends App {
   board.makeMove(Move("RAH", -1, -3, Move.Horizontal))
   board.makeMove(Move("LATHE", 0, -2, Move.Vertical))
   board.makeMove(Move("DEUCE", -1, -6, Move.Horizontal))
+  board.makeMove(Move("BE", -2, -7, Move.Horizontal))
+  board.makeMove(Move("KIBE", -4, -7, Move.Horizontal))
+  board.makeMove(Move("BEG", 3, -5, Move.Horizontal))
+  board.makeMove(Move("PEARL", 2, 2, Move.Horizontal))
+  board.makeMove(Move("DEITY", 3, -7, Move.Horizontal))
 
   board.print
 
@@ -26,7 +31,7 @@ object Main extends App {
   //   .map(c => Tiles.makeTile(c))
   //   .toSet
 
-  val tiles = Seq("B", "T", "B", "Z", "G", "E", "G").map(c => Tiles.makeTile(c)).toSet
+  val tiles = Seq("Z", "G", "T", "E", "E", "L", "D").map(c => Tiles.makeTile(c)).toSet
 
   val moves = board.getMoves(tiles)
     .map(m => (m, board.getMoveScore(m)))

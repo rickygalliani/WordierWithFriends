@@ -310,10 +310,9 @@ class Board() {
     coordinates.zip(tiles).foreach { case ((x, y), tile) =>
       // First count score contribution from letters in "base" word
       val pos = getPosition(x, y)
-      val alreadyOccupied = pos.getTile.isDefined
-      val tilePoints = if (!alreadyOccupied) tile.points * pos.letterFactor else tile.points
+      val tilePoints = if (pos.isOpen) tile.points * pos.letterFactor else tile.points
       score += tilePoints
-      if (!alreadyOccupied) wordFactor *= pos.wordFactor
+      if (pos.isOpen) wordFactor *= pos.wordFactor
 
       // Next count score contribution from letters in "offshoot" words connected to "base" word
       val vertWord = getVerticalWordAtPosition(x, y, tile.letter)

@@ -450,39 +450,43 @@ class BoardSpec extends FunSuite {
   }
 
   test("remainingFixedRowLetters(): case 1") {
-
     val testRowLettersNeg7 = Board.remainingFixedRowLetters(-7, List((-7, "A"), (3, "B")))
     assert(testRowLettersNeg7 == List((0, "A"), (10, "B")))
   }
 
   test("remainingFixedRowLetters(): case 2") {
-
     val testRowLetters0 = Board.remainingFixedRowLetters(0, List((-7, "A"), (3, "B")))
     assert(testRowLetters0 == List((3, "B")))
   }
 
   test("remainingFixedRowLetters(): case 3") {
-
     val testRowLetters5 = Board.remainingFixedRowLetters(5, List((-7, "A"), (3, "B")))
     assert(testRowLetters5 == List())
   }
 
   test("remainingFixedColLetters(): case 1") {
-
     val testColLettersNeg6 = Board.remainingFixedColLetters(-6, List((-7, "A"), (3, "B")))
     assert(testColLettersNeg6 == List((1, "A")))
   }
 
   test("remainingFixedColLetters(): case 2") {
-
     val testColLetters1 = Board.remainingFixedColLetters(1, List((-7, "A"), (3, "B")))
     assert(testColLetters1 == List((8, "A")))
   }
 
   test("remainingFixedColLetters(): case 3") {
-
     val testColLetters3 = Board.remainingFixedColLetters(3, List((-7, "A"), (3, "B")))
     assert(testColLetters3 == List((0, "B"), (10, "A")))
+  }
+
+  test("getMoveScore(): case 1") {
+    // Test that we don't count DW points because DW tiles is already occupied
+    val board = new Board()
+    board.setTileAtPosition(-1, -2, A)
+    board.setTileAtPosition(-1, -3, R)
+    board.setTileAtPosition(-0, -4, T)
+    val move = Move("BET", -2, -4, Move.Horizontal)
+    assert(board.getMoveScore(move) == 9)
   }
 
 }

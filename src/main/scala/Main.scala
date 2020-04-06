@@ -6,7 +6,7 @@ object Main extends App {
 
   println("WordierWithFriends")
 
-  val game = Game2  // toggle games here
+  val game = Game1  // toggle games here
 
   val board = new Board()
   game.moves.foreach(move => board.makeMove(move))

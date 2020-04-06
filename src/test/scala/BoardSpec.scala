@@ -438,12 +438,12 @@ class BoardSpec extends FunSuite {
       truthFixedRowLetters += (n -> List[(Int, String)]())
       truthFixedColLetters += (n -> List[(Int, String)]())
     }
-    truthFixedRowLetters += (0 -> List((7, "A")))
-    truthFixedRowLetters += (7 -> List((0, "B")))
-    truthFixedRowLetters += (-4 -> List((10, "C")))
-    truthFixedColLetters += (0 -> List((7, "A")))
-    truthFixedColLetters += (-7 -> List((0, "B")))
-    truthFixedColLetters += (3 -> List((11, "C")))
+    truthFixedRowLetters += (0 -> List((0, "A")))
+    truthFixedRowLetters += (7 -> List((-7, "B")))
+    truthFixedRowLetters += (-4 -> List((3, "C")))
+    truthFixedColLetters += (0 -> List((0, "A")))
+    truthFixedColLetters += (-7 -> List((7, "B")))
+    truthFixedColLetters += (3 -> List((-4, "C")))
 
     assert(testFixedRowLetters == truthFixedRowLetters)
     assert(testFixedColLetters == truthFixedColLetters)
@@ -477,6 +477,11 @@ class BoardSpec extends FunSuite {
   test("remainingFixedColLetters(): case 3") {
     val testColLetters3 = Board.remainingFixedColLetters(3, List((-7, "A"), (3, "B")))
     assert(testColLetters3 == List((0, "B"), (10, "A")))
+  }
+
+  test("remainingFixedColLetters(): case 4") {
+    val testColLetters = Board.remainingFixedColLetters(-4, List((-7, "K")))
+    assert(testColLetters == List((3, "K")))
   }
 
   test("getMoveScore(): case 1") {

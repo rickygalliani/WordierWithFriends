@@ -218,9 +218,16 @@ class Board() {
 
     // Check the validity of the "offshoot" words created
     val offshootWords = moveOffshootWords(move: Move)
-    val allValidOffshootWords = offshootWords.forall(Dictionary.wordIsValid _)
+    val allOffshootWordsAreValid = offshootWords.forall(Dictionary.wordIsValid _)
 
-    inValidLocation && notOverwriting && allValidOffshootWords
+    if (move == Move("LEAK", -4, -4, Move.Vertical)) {
+      println(s"\ninValidLocation = $inValidLocation")
+      println(s"notOverwriting = $notOverwriting")
+      println(s"offshootWords = ${offshootWords.mkString(",")}")
+      println(s"allOffshootWordsAreValid = $allOffshootWordsAreValid")
+    }
+
+    inValidLocation && notOverwriting && allOffshootWordsAreValid
   }
 
   def getFixedLetters(): (Map[Int, List[(Int, String)]], Map[Int, List[(Int, String)]]) = {
@@ -228,18 +235,18 @@ class Board() {
     var fixedRowLetters = Map[Int, List[(Int, String)]]()  // row index -> fixed row letters
     var fixedColLetters = Map[Int, List[(Int, String)]]()  // col index -> fixed col letters
 
-    (1 * Board.Radius to -1 * Board.Radius by -1).foreach { y =>
+    (-1 * Board.Radius to 1 * Board.Radius).foreach { y =>
       val row = getRow(y)
-      val fixedHorLetters = row.zipWithIndex.flatMap { case (pos, index) =>
-        if (!pos.isOpen()) Option((index, pos.getTile.get.letter)) else None
+      val fixedHorLetters = row.zipWithIndex.flatMap { case (pos, x) =>
+        if (!pos.isOpen()) Option((x - Board.Radius, pos.getTile.get.letter)) else None
       }.toList
       fixedRowLetters += (y -> fixedHorLetters)
     }
 
-    (1 * Board.Radius to -1 * Board.Radius by -1).foreach { x =>
+    (-1 * Board.Radius to 1 * Board.Radius).foreach { x =>
       val col = getCol(x)
-      val fixedVerLetters = col.zipWithIndex.flatMap { case (pos, index) =>
-        if (!pos.isOpen()) Option((index, pos.getTile.get.letter)) else None
+      val fixedVerLetters = col.zipWithIndex.flatMap { case (pos, y) =>
+        if (!pos.isOpen()) Option((Board.Radius - y, pos.getTile.get.letter)) else None
       }.toList
       fixedColLetters += (x -> fixedVerLetters)
     }
@@ -281,12 +288,20 @@ class Board() {
           if (fixedColLetters.map(_._1).contains(y - 1)) Set[String]()
           else {
             val remainingColLetters = Board.remainingFixedColLetters(y, fixedColLetters)
+            if (x == -4 && y == -4) {
+              println(s"\nremainingColLetters = ${remainingColLetters.mkString(",")}")
+            }
             getWords(tiles, remainingColLetters, remainingCol.length)
           }    
         }.filter(w => !fixedColIndexes.contains(y + w.length))
-        
+
         horWords.foreach(w => moves += Move(w, x, y, Move.Horizontal))
         verWords.foreach(w => moves += Move(w, x, y, Move.Vertical))
+
+        if (x == -4 && y == -4) {
+          println(s"\nfixedColLetters = ${fixedColLetters.mkString(",")}")
+          println(s"verWords = ${verWords.mkString(",")}")
+        }
       }
     }
     

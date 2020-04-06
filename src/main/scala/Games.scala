@@ -20,7 +20,8 @@ object Games {
       Move("BEG", 3, -5, Move.Horizontal),
       Move("PEARL", 2, 2, Move.Horizontal),
       Move("DEITY", 3, -7, Move.Horizontal),
-      Move("TED", 3, 3, Move.Vertical)
+      Move("TED", 3, 3, Move.Vertical),
+      Move("QIS", 7, 4, Move.Vertical)
     ), 
     Set(Z, G, E, E, L, N, A)
   )
@@ -36,7 +37,7 @@ object Games {
       Move("SOOKS", 4, -3, Move.Vertical),
       Move("GLOBED", 2, -5, Move.Horizontal),
       Move("WO", 6, -4, Move.Horizontal),
-      Move("FROGS", 0, -7, Move.Horizontal)
+      Move("FROGS", 0, -7, Move.Horizontal),
       Move("MEN", 2, -1, Move.Vertical)
     ), 
     Set(Q, M, T, N, T, E, E)

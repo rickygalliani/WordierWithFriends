@@ -18,12 +18,13 @@ object Games {
       Move("BE", -2, -7, Move.Horizontal),
       Move("KIBE", -4, -7, Move.Horizontal),
       Move("BEG", 3, -5, Move.Horizontal),
-      Move("PEARL", 2, 2, Move.Horizontal),
+      Move("PEARLS", 2, 2, Move.Horizontal),
       Move("DEITY", 3, -7, Move.Horizontal),
       Move("TED", 3, 3, Move.Vertical),
-      Move("QIS", 7, 4, Move.Vertical)
+      Move("QIS", 7, 4, Move.Vertical),
+      Move("ZEK", -4, -5, Move.Vertical)
     ), 
-    Set(Z, G, E, E, L, N, A)
+    Set(G, E, L, N, A, A, U)
   )
 
   case object Game2 extends Game(

@@ -504,11 +504,11 @@ class BoardSpec extends FunSuite {
     assert(board.getMoveScore(move) == 9)
   }
 
-  // test("getMoveScore(): case 2") {
-  //   val board = new Board()
-  //   board.setTileAtPosition(5, 2, R)
-  //   val move = Move("GLAZER", 5, 7, Move.Vertical)
-  //   assert(board.getMoveScore(move) == 9)
-  // }
+  test("getMoveScore(): case 2") {
+    val board = new Board()
+    board.setTileAtPosition(5, 2, R)
+    val move = Move("GLAZER", 5, 7, Move.Vertical)
+    assert(board.getMoveScore(move) == 21)
+  }
 
 }

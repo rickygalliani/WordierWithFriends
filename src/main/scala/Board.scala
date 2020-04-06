@@ -1,4 +1,5 @@
 import scala.collection.mutable.ListBuffer
+import collection.mutable.HashSet
 import scala.collection.mutable.Map 
 
 import Position.{rp, dl, tl, dw, tw}
@@ -24,7 +25,7 @@ class Board() {
     Array(rp, rp, rp, tw, rp, rp, tl, rp, tl, rp, rp, tw, rp, rp, rp)
   )
 
-  private val words: ListBuffer[String] = new ListBuffer[String]
+  private val words: HashSet[String] = new HashSet[String]
 
   def isEmpty(): Boolean = {
     state.foreach { row => row.foreach(pos => if (pos.getTile.isDefined) return false) }
@@ -355,6 +356,7 @@ class Board() {
     // Add the tiles to the board
     coordinates.zip(tiles).foreach { case ((x, y), tile) => setTileAtPosition(x, y, tile) }
     words += move.word
+    moveOffshootWords(move).foreach(word => words += word)
   }
 
   def print(): Unit = {

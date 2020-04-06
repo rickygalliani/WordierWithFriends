@@ -413,6 +413,16 @@ class BoardSpec extends FunSuite {
     assert(board.moveOffshootWords(move) == Set("VINU"))
   }
 
+  test("moveOffshootWords(): case 6") {
+    val board = new Board()
+    board.setTileAtPosition(-4, -7, K)
+    board.setTileAtPosition(-3, -7, I)
+    board.setTileAtPosition(-2, -7, B)
+    board.setTileAtPosition(-1, -7, E)
+    val move = Move("LEAK", -4, -4, Move.Vertical)
+    assert(board.moveOffshootWords(move) == Set("KIBE"))
+  }
+
   test("getFixedLetters(): case 1") {
     val board = new Board()
     val (testFixedRowLetters, testFixedColLetters) = board.getFixedLetters()
@@ -493,5 +503,12 @@ class BoardSpec extends FunSuite {
     val move = Move("BET", -2, -4, Move.Horizontal)
     assert(board.getMoveScore(move) == 9)
   }
+
+  // test("getMoveScore(): case 2") {
+  //   val board = new Board()
+  //   board.setTileAtPosition(5, 2, R)
+  //   val move = Move("GLAZER", 5, 7, Move.Vertical)
+  //   assert(board.getMoveScore(move) == 9)
+  // }
 
 }

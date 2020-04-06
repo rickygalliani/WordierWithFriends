@@ -195,13 +195,18 @@ class Board() {
         (getVerticalWordAtPosition(x, y, letter), getHorizontalWordAtPosition(x, y, letter))
       }
       var offshootWords = new ListBuffer[String]()
-      // Don't include "offshoot" words that are subsets of the bookend word. This happens at the
-      // bookends of the move word. Also don't include "offshoot" words that are just the letter.
+      // Don't include "offshoot" words that are subsets of the move's word in the same direction.
+      // Don't include "offshoot" words that are subsets of the bookend word in the same direction.
+      // Don't include "offshoot" words that are just the letter.
       if (move.direction == Move.Vertical) {
-        if (!bookendWord.contains(verWord) && !verWord.equals(letter)) offshootWords += verWord
+        if (!move.word.contains(verWord) &&
+            !bookendWord.contains(verWord) && 
+            !verWord.equals(letter)) offshootWords += verWord
         if (!horWord.equals(letter)) offshootWords += horWord
       } else {
-        if (!bookendWord.contains(horWord) && !horWord.equals(letter)) offshootWords += horWord
+        if (!move.word.contains(horWord) &&
+            !bookendWord.contains(horWord) &&
+            !horWord.equals(letter)) offshootWords += horWord
         if (!verWord.equals(letter)) offshootWords += verWord
       }
       offshootWords
@@ -219,13 +224,6 @@ class Board() {
     // Check the validity of the "offshoot" words created
     val offshootWords = moveOffshootWords(move: Move)
     val allOffshootWordsAreValid = offshootWords.forall(Dictionary.wordIsValid _)
-
-    if (move == Move("LEAK", -4, -4, Move.Vertical)) {
-      println(s"\ninValidLocation = $inValidLocation")
-      println(s"notOverwriting = $notOverwriting")
-      println(s"offshootWords = ${offshootWords.mkString(",")}")
-      println(s"allOffshootWordsAreValid = $allOffshootWordsAreValid")
-    }
 
     inValidLocation && notOverwriting && allOffshootWordsAreValid
   }
@@ -288,20 +286,12 @@ class Board() {
           if (fixedColLetters.map(_._1).contains(y - 1)) Set[String]()
           else {
             val remainingColLetters = Board.remainingFixedColLetters(y, fixedColLetters)
-            if (x == -4 && y == -4) {
-              println(s"\nremainingColLetters = ${remainingColLetters.mkString(",")}")
-            }
             getWords(tiles, remainingColLetters, remainingCol.length)
           }    
         }.filter(w => !fixedColIndexes.contains(y + w.length))
 
         horWords.foreach(w => moves += Move(w, x, y, Move.Horizontal))
         verWords.foreach(w => moves += Move(w, x, y, Move.Vertical))
-
-        if (x == -4 && y == -4) {
-          println(s"\nfixedColLetters = ${fixedColLetters.mkString(",")}")
-          println(s"verWords = ${verWords.mkString(",")}")
-        }
       }
     }
     
